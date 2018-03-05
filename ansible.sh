@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ansible=ansible-2.4.3.0.tar.gz
 ansible_dir=${ansible%\.*}
@@ -10,12 +10,22 @@ function system_is_redhat() {
 	grep "Red Hat" /etc/redhat-release > /dev/null 2>&1
 }
 
+function system_is_ubuntu() {
+	grep Ubuntu /etc/lsb-release > /dev/null 2>&1
+}
+
 function install_dependencies() {
 	if system_is_redhat; then
 		yum -y install \
 			rpm-build \
 			make \
 			python2-devel \
+			> /dev/null
+	fi
+	if system_is_ubuntu; then
+		apt install -y \
+			python-pip \
+			libssl-dev \
 			> /dev/null
 	fi
 }
@@ -28,13 +38,16 @@ function build_ansible() {
 		fi
 		tar xf $ansible
 	fi
+	pushd $ansible_dir
+	make && make install
+	popd
 	ansible_path=$topdir/$ansible_dir
 
-	if grep ANSIBLE_PATH prfole > /dev/null 2>&1; then
-		return
-	fi
-	echo "export ANSIBLE_PATH=$ansible_path" >> profile
-	echo "export PATH=$ansible_path/bin:$PATH" >> profile
+	#if grep ANSIBLE_PATH prfole > /dev/null 2>&1; then
+	#	return
+	#fi
+	#echo "export ANSIBLE_PATH=$ansible_path" >> profile
+	#echo "export PATH=$ansible_path/bin:$PATH" >> profile
 }
 
 #----------------------------------------------------
